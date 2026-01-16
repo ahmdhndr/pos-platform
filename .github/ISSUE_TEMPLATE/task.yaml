@@ -1,0 +1,31 @@
+name: ✅ Task
+description: Technical or implementation task
+title: "[Task]: "
+labels: ["task"]
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: Task Description
+      description: What exactly needs to be done?
+      placeholder: Implement the new API endpoint for...
+    validations:
+      required: true
+  - type: checkboxes
+    id: steps
+    attributes:
+      label: Implementation Steps
+      description: Break down the work into smaller steps.
+      options:
+        - label: Step 1
+        - label: Step 2
+        - label: Step 3
+  - type: checkboxes
+    id: acceptance-criteria
+    attributes:
+      label: Done When
+      description: Acceptance criteria for this task.
+      options:
+        - label: Code merged
+        - label: Tests pass
+        - label: Docs updated (if needed)
