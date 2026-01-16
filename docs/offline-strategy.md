@@ -1,134 +1,148 @@
-# Multi-Tenant Architecture Definition
+# Offline-First Sync Strategy
 
 ## Goal
 
-Ensure strict data isolation between tenants while allowing
-the system to scale efficiently in a single SaaS deployment.
+Allow uninterrupted POS operation during network outages
+without data loss or duplication.
 
 ---
 
-## Tenant Definition
+## Offline Definition
 
-A tenant represents one business entity subscribing to the platform.
+The application must function correctly when:
 
-A tenant owns:
-
-- Users
-- Outlets
-- Products
-- Inventory
-- Transactions
-- Configuration and branding
+- Network is unavailable
+- Network is unstable
+- Server is temporarily unreachable
 
 ---
 
-## Tenant Identification Strategy
+## Offline Capabilities (MVP)
 
-### Primary Identifier
+Available offline:
 
-- `tenant_id` (UUID, immutable)
+- Product listing
+- Checkout
+- Transaction creation
+- Receipt generation
 
-### Request Resolution
+Unavailable offline:
 
-Tenant is resolved from subdomain
-
-<!-- 2. Custom domain (optional, paid tier) -->
-
-Example:
-
-- agamdinamo.posapp.com → tenant_id = `uuid-42`
-- queeniza.posapp.com -> tenant_id = `uuid-45`
-<!-- - pos.agamdinamo.co.id → tenant_id = `uuid-42` -->
+- Reporting dashboards
+- User management
+- Configuration changes
 
 ---
 
-## Architecture Choice
+## Local Data Storage
 
-### Selected Model
+### Storage Technology
 
-Shared database, tenant-scoped rows
+IndexedDB (browser)
 
-Rationale:
+### Local Stores
 
-- Lower operational cost
-- Easier schema evolution
-- Suitable for MVP and early scale
-
----
-
-## Database Enforcement
-
-### Mandatory Rule
-
-Every business table MUST include `tenant_id`.
-
-Example tables:
-
-tenants
-
-- id (PK)
-- name
-- subdomain
-- custom_domain
-- status
-
-users
-
-- id (PK)
-- tenant_id (FK)
-- email
-- password_hash
-- role_id
-
-products
-
-- id (PK)
-- tenant_id (FK)
-- name
-- price
-- sku
-
-transactions
-
-- id (PK)
-- tenant_id (FK)
-- outlet_id
-- total_amount
-- created_at
+- products
+- transactions
+- sync_queue
+- metadata
 
 ---
 
-## Application Enforcement
+## Transaction Flow (Offline)
 
-### Tenant Context
+1. Cashier completes checkout
+2. Transaction is saved locally
+3. A sync command is created
+4. UI reflects offline status
 
-- Tenant is resolved once per request
-- Tenant context is injected into request lifecycle
-- No repository/query may execute without tenant scope
+Example sync command:
 
-Example rule:
-
-- Any query without tenant filter is invalid
+{
+"command_id": "uuid",
+"type": "CREATE_TRANSACTION",
+"entity_id": "transaction-uuid",
+"payload": { ... },
+"status": "PENDING",
+"created_at": "timestamp"
+}
 
 ---
 
-## Security Guarantees
+## Sync Trigger
 
-- No cross-tenant queries
-- No shared identifiers exposed across tenants
-- No global admin bypass in MVP
+Sync occurs when:
+
+- Network connectivity is restored
+- User manually triggers sync
+
+---
+
+## Sync Processing Rules
+
+- Commands are processed sequentially
+- Commands are retried on failure
+- Sync is resumable
+
+---
+
+## Idempotency Strategy
+
+Rule:
+
+- Server must treat all commands as idempotent
+
+Mechanism:
+
+- Each transaction has a globally unique ID
+- Server stores processed command IDs
+- Duplicate commands are ignored safely
+
+---
+
+## Conflict Handling
+
+### Inventory Conflict Example
+
+- Local stock = 5
+- Server stock = 2
+
+Resolution (MVP):
+
+- Allow sale
+- Allow negative inventory
+- Flag for reconciliation
+
+No automatic rollback.
+
+---
+
+## Failure Handling
+
+- Partial sync is allowed
+- Failed commands remain in queue
+- User is notified of unresolved sync issues
+
+---
+
+## UX Requirements
+
+- Clear offline indicator
+- Pending sync count
+- Sync success/failure feedback
 
 ---
 
 ## Explicit Non-Goals
 
-- Separate database per tenant
-- Cross-tenant reporting
-- Tenant-to-tenant data sharing
+- Real-time multi-device inventory locking
+- Automatic conflict resolution
+- Distributed consensus
 
 ---
 
 ## Success Criteria
 
-- Tenant A cannot access Tenant B data under any circumstance
-- Tenant resolution is deterministic and auditable
+- Zero transaction loss
+- No duplicate transactions
+- Predictable and explainable sync behavior
