@@ -1,255 +1,103 @@
-# POS SaaS – Weekly SDLC Task Checklist
+# 🚀 Solo-Dev POS Roadmap (Lean Edition)
 
-> Constraints:
+> **Constraints:**
 >
-> - Solo developer
-> - Full-time job
-> - ~6–10 hours/week
-> - Spare-time development
-> - Goal: Offline-first, multi-tenant POS SaaS
+> - 1 Developer | Full-time job elsewhere
+> - 6–10 hours per week
+> - Goal: Functional Multi-tenant POS (Apotek/Retail focused)
 
 ---
 
-## Phase 0 — Grounding & Direction
+## Phase 1 — Grounding & Foundation (Weeks 1–3)
 
-### Week 1 — Product Definition
+**Focus:** Lock in decisions and set up the "Empty Shell."
 
-- [ ] Choose first target industry (retail / fashion recommended)
-- [ ] Write 1-page product vision
-- [ ] Define core problem statements
-- [ ] Define MVP must-have features
-- [ ] Define explicit non-goals
-- [ ] Define offline-first scope for MVP
-- [ ] Create monorepo Git repository
+### Week 1: Product & Repo Setup
 
-**Output:** `docs/vision.md`
+- [ ] Finalize **1-page Vision** (Adaptive Strategy Pattern).
+- [ ] Initialize Repository: Standard `/api` and `/web` folders.
+- [ ] Tech Stack Init: NestJS (Backend), Next.js (Frontend), Tailwind CSS.
+- [ ] **Output:** Apps running locally and talking to each other.
 
----
+### Week 2: Data & Isolation Design
 
-### Week 2 — Market & Technical Research
+- [ ] Finalize **DBML Schema**: (Core tables: Tenants, Users, Products, Orders).
+- [ ] Define **Isolation Strategy**: Implement PostgreSQL Schema-per-tenant logic.
+- [ ] Hardcode RBAC: Define `OWNER`, `MANAGER`, `CASHIER` constants.
+- [ ] **Output:** Database migrations for the "Public" schema.
 
-- [ ] Analyze Moka POS features
-- [ ] Identify Moka POS gaps
-- [ ] Research offline POS failures in Indonesia
-- [ ] Finalize tech stack
-  - [ ] NestJS
-  - [ ] Next.js
-  - [ ] PostgreSQL
-  - [ ] IndexedDB
-- [ ] Decide monorepo tooling (Nx)
-- [ ] Define MVP success criteria
+### Week 3: Minimalist Offline Strategy
 
-**Output:** `docs/mvp-definition.md`
+- [ ] Define Offline Scope: Sync only `Products` and `Orders`.
+- [ ] Strategy: **Last-Write-Wins** for conflict resolution.
+- [ ] Sync UI: Design a simple "Online/Offline" status indicator.
+- [ ] **Output:** `docs/sync-logic.md` (A simple 1-page flow).
 
 ---
 
-## Phase 1 — Architecture & Design
+## Phase 2 — The Core Engine (Weeks 4–7)
 
-### Week 3 — System Architecture
+**Focus:** Building the actual SaaS "Magic."
 
-- [ ] Define high-level architecture
-- [ ] Define multi-tenant strategy
-- [ ] Define subdomain routing strategy
-- [ ] Define custom domain support (conceptual)
-- [ ] Define authentication approach
-- [ ] Define service boundaries
-- [ ] Draw C4 Context Diagram
-- [ ] Draw C4 Container Diagram
+### Week 4: Auth & Tenant Middleware
 
-**Output:** `docs/architecture.md`
+- [ ] JWT Login/Logout Flow.
+- [ ] **Tenant Middleware**: Subdomain-to-Schema resolution logic.
+- [ ] **Output:** `tenant1.app.local` and `tenant2.app.local` show different data.
 
----
+### Week 5: Core POS API
 
-### Week 4 — Database & RBAC Design
+- [ ] Product CRUD: Support for JSONB (Industry-specific metadata).
+- [ ] Basic Inventory: Stock increment/decrement logic.
+- [ ] **Output:** Working API for managing a store catalog.
 
-- [ ] Design core tables:
-  - [ ] Tenant
-  - [ ] User
-  - [ ] Role
-  - [ ] Permission
-  - [ ] Outlet
-  - [ ] Product
-  - [ ] Inventory
-  - [ ] Transaction
-- [ ] Design tenant isolation rules
-- [ ] Design RBAC model
-- [ ] Define audit log strategy
-- [ ] Write schema (SQL / DBML)
+### Week 6: The Cashier UI (Frontend)
 
-**Output:** `docs/database.md`
+- [ ] Product Grid: Search and Filter by category.
+- [ ] Cart Logic: Add/Remove/Update quantities (Client-side state).
+- [ ] **Output:** A functional "Scanning" experience on the web.
+
+### Week 7: Receipts & Payments
+
+- [ ] **Receipt Engine**: HTML template for ESC/POS printing.
+- [ ] Payment Selector: Toggle between Cash and QRIS (Mocked).
+- [ ] **Output:** End-to-end "Online" checkout flow.
 
 ---
 
-### Week 5 — Offline-First Design
+## Phase 3 — The Offline Edge (Weeks 8–11)
 
-- [ ] Define offline data model
-- [ ] Define sync strategy
-- [ ] Define conflict resolution rules
-- [ ] Define command/event queue
-- [ ] Define online vs offline feature split
-- [ ] Write offline sync flow
+**Focus:** Making the app resilient for the Indonesian market.
 
-**Output:** `docs/offline-strategy.md`
+### Week 8: Local Storage (IndexedDB)
 
----
+- [ ] Setup **Dexie.js** in the frontend.
+- [ ] Data Mirroring: Seed local DB with Product data on login.
+- [ ] **Output:** Products visible even when Wi-Fi is toggled off.
 
-## Phase 2 — Foundation Implementation
+### Week 9: Offline Transactions
 
-### Week 6 — Monorepo Setup (Nx)
+- [ ] Local Checkout: Save orders to an "Outbox" in IndexedDB.
+- [ ] UUID Generation: Ensure order IDs don't collide when syncing.
+- [ ] **Output:** Ability to "Complete Sale" while offline.
 
-- [ ] Initialize Nx workspace
-- [ ] Create `api` app (NestJS)
-- [ ] Create `web` app (Next.js)
-- [ ] Create shared libs:
-  - [ ] auth
-  - [ ] types
-  - [ ] utils
-- [ ] Setup linting & formatting
-- [ ] Setup environment configuration
+### Week 10: The Sync Engine
 
-**Output:** Apps run locally
+- [ ] Background Sync: Automatic push of "Outbox" orders when online.
+- [ ] Basic Conflict handling: Server rejects duplicates based on UUID.
+- [ ] **Output:** Data consistency between Browser and Server.
 
----
+### Week 11: Deployment & CI/CD
 
-### Week 7 — Authentication & Tenant Core
-
-- [ ] User registration
-- [ ] Tenant creation
-- [ ] Login / logout
-- [ ] JWT + refresh tokens
-- [ ] Tenant context middleware
-- [ ] Subdomain-to-tenant resolution
-
-**Output:** Auth flow works
+- [ ] VPS Setup: Hostinger + Nginx + PM2.
+- [ ] **GitHub Actions**: Automated `git push` to deploy.
+- [ ] SSL: Setup Let's Encrypt for subdomains.
+- [ ] **Output:** Live URL accessible to the world.
 
 ---
 
-### Week 8 — RBAC Implementation
+## 🛠️ Solo-Dev "Survival" Rules
 
-- [ ] Role CRUD
-- [ ] Permission definitions
-- [ ] Role-permission mapping
-- [ ] Authorization guards
-- [ ] Seed default roles
-- [ ] Basic admin UI for roles
-
-**Output:** RBAC enforced
-
----
-
-### Week 9 — Core POS Backend
-
-- [ ] Product CRUD
-- [ ] Category management
-- [ ] Inventory tracking
-- [ ] Outlet support
-- [ ] Transaction model
-- [ ] API tests for POS flows
-
-**Output:** POS backend usable
-
----
-
-### Week 10 — Core POS Frontend
-
-- [ ] Login UI
-- [ ] Product list UI
-- [ ] Cart UI
-- [ ] Checkout flow
-- [ ] Transaction history
-- [ ] Error handling
-
-**Output:** Online POS flow end-to-end
-
----
-
-## Phase 3 — Offline-First MVP
-
-### Week 11 — Offline Data Layer
-
-- [ ] IndexedDB schema
-- [ ] Product local cache
-- [ ] Transaction local store
-- [ ] Sync status indicator
-- [ ] Network detection
-
----
-
-### Week 12 — Offline Transactions
-
-- [ ] Offline checkout
-- [ ] Queue transactions
-- [ ] Local receipt handling
-- [ ] Idempotent transaction IDs
-- [ ] Manual sync trigger
-
----
-
-### Week 13 — Sync Engine
-
-- [ ] Background sync
-- [ ] Retry strategy
-- [ ] Conflict resolution handling
-- [ ] Idempotency enforcement
-- [ ] Sync logging
-
----
-
-### Week 14 — Offline QA
-
-- [ ] Test network loss scenarios
-- [ ] Test conflict scenarios
-- [ ] Verify data consistency
-- [ ] UX polish for offline mode
-
-**Output:** Reliable offline POS
-
----
-
-## Phase 4 — Hardening & MVP Release
-
-### Week 15 — Security & Stability
-
-- [ ] Input validation
-- [ ] Rate limiting
-- [ ] Audit logging
-- [ ] Error monitoring
-- [ ] Backup strategy
-
----
-
-### Week 16 — Multi-Tenant Polish
-
-- [ ] Tenant switching
-- [ ] Basic custom domain support
-- [ ] Tenant branding (logo, name)
-- [ ] Subscription flag (mocked)
-
----
-
-### Week 17 — Deployment
-
-- [ ] CI pipeline
-- [ ] Docker setup
-- [ ] Staging environment
-- [ ] Production environment
-- [ ] SSL configuration
-
----
-
-### Week 18 — MVP Launch
-
-- [ ] Documentation
-- [ ] Demo tenant
-- [ ] Feedback collection
-- [ ] Known issues list
-- [ ] Decide next industry module
-
----
-
-## Development Rules
-
-- One weekly deliverable
-- No refactor before MVP
-- No new features outside checklist
-- Skip weeks if needed — do not quit
+1. **No Over-Engineering**: If you spend more than 2 hours configuring a tool (like Docker or Nx), stop and use the simplest version.
+2. **Feature Freeze**: No new "cool ideas" until the Cashier can finish a sale.
+3. **Weekly Win**: If you only have 6 hours, finish **one** checkbox completely rather than starting three.
